@@ -6,19 +6,20 @@ before_install:
   - docker build -t alidesoki/react-test -f ./client/Dockerfile.dev ./client
 
 script:
-  - docker run -e CI=true alidesoki/react-test npm test
+  - docker run alidesoki/react-test npm test -- --coverage
 
 after_success:
   - docker build -t alidesoki/multi-client ./client
   - docker build -t alidesoki/multi-nginx ./nginx
-  - docker build -t alidesoki/multi-worker ./worker
   - docker build -t alidesoki/multi-server ./server
-  
-  - echo "$docker_pass" | docker login -u "$docker_id" --password-stdin
+  - docker build -t alidesoki/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
   - docker push alidesoki/multi-client
   - docker push alidesoki/multi-nginx
-  - docker push alidesoki/multi-worker
   - docker push alidesoki/multi-server
+  - docker push alidesoki/multi-worker
 
 deploy:
   provider: elasticbeanstalk
